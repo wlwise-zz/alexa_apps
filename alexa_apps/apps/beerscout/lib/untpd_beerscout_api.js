@@ -10,7 +10,38 @@ let config = require('../config/config'),
     baseURL = config.get('untappdAPI').v4.url,
     clientId = config.get('untappdAPI').clientId.cid,
     clientSecret = config.get('untappdAPI').clientSecret.cs;
-
+function getTheHighestRatedBeers(){
+     console.log('in get the highest rated beers in api');
+            let  myUrl = `${baseURL}user/beers/gregavola?sort=highest_rated&client_id=${clientId}&client_secret=${clientSecret}`;
+            let    options = {
+                     method: 'GET',
+                    uri: myUrl,
+                    transform: function (body, response) {
+                        body = JSON.parse(body);
+                        console.log(body);
+                        return body;
+                    }
+                };
+                
+        return request(options);
+ }
+ 
+ function getTheLowestRatedBeers(){
+     console.log('in get the highest rated beers in api');
+            let  myUrl = `${baseURL}user/beers/gregavola?sort=lowest_rated&client_id=${clientId}&client_secret=${clientSecret}`;
+            let    options = {
+                     method: 'GET',
+                    uri: myUrl,
+                    transform: function (body, response) {
+                        body = JSON.parse(body);
+                        console.log(body);
+                        return body;
+                    }
+                };
+                
+        return request(options);
+ }    
+    
 function getMyHighestRatedBeers(){
      console.log('in get my highest rated beers in api');
             let  myUrl = `${baseURL}user/beers/gregavola?sort=highest_rated_you&client_id=${clientId}&client_secret=${clientSecret}`;
@@ -91,29 +122,33 @@ function getMyWishList(){
                 
         return request(options);
     }
+    
+    function searchBreweryByName(breweryName){
+        console.log('in search brewery by name in the API with brewery named ' + breweryName);
+          let  myUrl = `${baseURL}search/beer?q=${breweryName}&client_id=${clientId}&client_secret=${clientSecret}`;
+            let    options = {
+                     method: 'GET',
+                    uri: `${baseURL}search/brewery?q=${breweryName}&client_id=${clientId}&client_secret=${clientSecret}`,
+                    transform: function (body, response) {
+                        body = JSON.parse(body);
+                        console.log(body);
+                        return body;
+                    }
+                };
+                
+        return request(options);
+    }
 
-    function getBeerType(style) {
-        console.log('in get beer type with ' + style);
-
-}
-// function getBeerByName(beerName) {
-//     let transformedId = encodeURIComponent(segmentId);
-//     let options = {
-//         url: `${baseURL}v1/segment/${transformedId}/tagged`,
-//         transform: function (body, response) {
-//             body = JSON.parse(body);
-//             return addAudioURLtoPayload(body);
-//         }
-//     };
-//     return request(options);
-// }
-
+   
 api = {
     getMyWishList : getMyWishList,
     getMyUserStats : getMyUserStats,
     searchBeerNames : searchBeerNames,
     getMyHighestRatedBeers : getMyHighestRatedBeers,
-    getMyLowestRatedBeers : getMyLowestRatedBeers
+    getMyLowestRatedBeers : getMyLowestRatedBeers,
+    getTheLowestRatedBeers : getTheLowestRatedBeers,
+    getTheHighestRatedBeers : getTheHighestRatedBeers,
+    searchBreweryByName : searchBreweryByName
 }
 
 module.exports = api;

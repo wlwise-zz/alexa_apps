@@ -15,6 +15,39 @@ app.launch(function(req,res) {
     res.shouldEndSession('false');
 });
 
+app.intent('getTheHighestRatedBeer', 
+function (request, response){
+    console.log('in the highest rated beer in index.js');
+    response.shouldEndSession('false');
+    beerscoutAPI.getTheHighestRatedBeers().then(function(dataResponse){
+        console.log(dataResponse.response.beers.items[0]);
+        console.log('number of ratings ' + dataResponse.response.beers.items[0].rating_count);
+        response.say(`The highest rated beer is
+            ${dataResponse.response.beers.items[0].beer.beer_name}, which is brewed by 
+            ${dataResponse.response.beers.items[0].brewery.brewery_name}.  This beer is rated at
+            ${dataResponse.response.beers.items[0].beer.rating_score} out of 5.  
+            ${dataResponse.response.beers.items[0].beer.rating_count} people have rated this beer.`);
+            response.send();
+    })
+    return false;
+});
+
+app.intent('getTheLowestRatedBeer', 
+function (request, response){
+    console.log('in the lowest rated beer in index.js');
+    response.shouldEndSession('false');
+    beerscoutAPI.getTheLowestRatedBeers().then(function(dataResponse){
+        console.log(dataResponse.response.beers.items[0]);
+        response.say(`The lowest rated beer is
+            ${dataResponse.response.beers.items[0].beer.beer_name}, which is brewed by 
+            ${dataResponse.response.beers.items[0].brewery.brewery_name}.  This beer is rated at
+            ${dataResponse.response.beers.items[0].beer.rating_score} out of 5.  
+            ${dataResponse.response.beers.items[0].beer.rating_count} people have rated this beer.`);
+            response.send();
+    })
+    return false;
+});
+
 app.intent('getMyHighestRatedBeer', 
 function (request, response){
     console.log('in my highest rated beer in index.js');
@@ -172,11 +205,69 @@ app.intent('searchBeerByName', {
         
     }).catch(function (reason) {
         console.log('whoops from index.js ' + reason);
-        response.say(`I could not find a beer by the name of ${request.slot('NAME')}`);
+        response.say(`Sorry.  I had some sort of issue.  Maybe it was too much beer.  Please try your request again.`);
         response.send();
         
     });
     return false;
 });
+
+app.intent('searchBreweryByName', {
+    slots:{"BREWERYNAME" : "BREWERYNAME"}
+}, function(request,response) {
+    console.log(`in search brewery by name in index.js with parameter ${request.slot('BREWERYNAME')}`);
+    response.shouldEndSession('false');
+    beerscoutAPI.searchBreweryByName(request.slot('BREWERYNAME')).then(function (dataResponse) {
+        console.log(dataResponse.response.brewery.count);
+         console.log(dataResponse.response.brewery.items[0]);
+        var breweryCount = (dataResponse.response.brewery.count + 1);
+        if (breweryCount === 1){
+            response.say(`Sorry, I couldn't find any breweries named ${request.slot('BREWERYNAME')}.`);
+            response.send();
+        }else if (breweryCount === 2){
+            response.say(`I found this about ${dataResponse.response.brewery.items[0].brewery.brewery_name}.  This brewery produces 
+                 ${dataResponse.response.brewery.items[0].brewery.beer_count} beers.`);
+            if (dataResponse.response.brewery.items[0].brewery.country_name.length > 5) {
+                response.say(`Its country of origin is
+                    ${dataResponse.response.brewery.items[0].brewery.country_name}.`);
+            }
+            if (dataResponse.response.brewery.items[0].brewery.location.brewery_city.length > 1) {
+                response.say(`It's located in 
+                    ${dataResponse.response.brewery.items[0].brewery.location.brewery_city}.`);
+            }
+            if (dataResponse.response.brewery.items[0].brewery.location.brewery_state.length > 1){
+                response.say(`In ${dataResponse.response.brewery.items[0].brewery.location.brewery_state}.`);
+            }
+            
+            response.send();
+        }else { //more than one brewery returned
+
+            var myArray = dataResponse.response.brewery.items;
+            console.log('more than one brewery returned - ' + myArray.length);
+            response.say(`I found several breweries related to ${request.slot('BREWERYNAME')}.  Did you mean one of these?`);
+            if (myArray.length > 5) {
+                response.session('breweryCountReturned', 'myArray.length');
+                myArray.length = 5;
+            }
+                for (var i = 0; i < myArray.length; i++){
+                    response.say(`${dataResponse.response.brewery.items[i].brewery.brewery_name}...`);
+                }
+            response.send();
+             for (var item of myArray) {
+                console.log(item.brewery.brewery_name);
+            }
+        }
+        
+    }).catch(function (reason) {
+        console.log('whoops from index.js ' + reason);
+        response.say(`Sorry.  I had some sort of issue.  Maybe it was too much beer.  Please try your request again.`);
+        response.send();
+        
+    });
+    return false;
+});
+
+
+
 
 module.exports = app;
