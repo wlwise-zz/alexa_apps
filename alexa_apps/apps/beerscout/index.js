@@ -15,6 +15,36 @@ app.launch(function(req,res) {
     res.shouldEndSession('false');
 });
 
+app.intent('getMyWishList', 
+function (request, response){
+    console.log('in my stats in index.js');
+    response.shouldEndSession('false');
+    beerscoutAPI.getMyWishList().then(function(dataResponse){
+        if (dataResponse.response.count === 0){
+            response.say("You don't have any brews on your wish list.  Are you feeling okay?");
+        } else if (dataResponse.response.count === 1){
+            response.say(`You have one lonely brew on your wish list.  Don't you think ${dataResponse.response.beers.items[0].beer.beer_name} deserves some friends?`);
+        }else {
+            if (dataResponse.response.count > 20) {
+                response.say(`My what a big wish list you have.  You have ${dataResponse.response.count} items on your list.  Here are a few of them...`);
+            }
+            var myArray = dataResponse.response.beers.items;
+            console.log('wish list size - ' + myArray.length);
+            if (myArray.length > 5) {
+                response.session('wishListCountReturned', 'myArray.length');
+                myArray.length = 5;
+            }
+            for (var i = 0; i < myArray.length; i++){
+                    response.say(`${dataResponse.response.beers.items[i].beer.beer_name}...`);
+                }
+        }
+        console.log(dataResponse.response.count);
+       response.send(); 
+    })
+    
+    return false;
+});
+
 app.intent('getMyUserStats', 
 function (request, response){
     console.log('in my stats in index.js');
@@ -24,7 +54,8 @@ function (request, response){
         response.say(`Hey ${dataResponse.response.user.first_name}. You have checked in 
         ${dataResponse.response.user.stats.total_checkins} times, tried 
         ${dataResponse.response.user.stats.total_beers} beers, and have
-        ${dataResponse.response.user.stats.total_friends} friends. `);
+        ${dataResponse.response.user.stats.total_friends} friends, and
+        ${dataResponse.response.user.stats.total_followings} followings.`);
         
         console.log(dataResponse.response.user.recent_brews.items[0].beer.beer_name);
         
@@ -79,9 +110,12 @@ app.intent('searchBeerByName', {
             var have_had = dataResponse.response.beers.items[0].have_had;
             console.log(have_had);
             if (have_had.toString() === "false") {
-                response.say('You have not had this beer yet.  Why not try it now?');
+                response.say(`You have not had this beer yet, but 
+                 ${dataResponse.response.beers.items[0].checkin_count} people have.
+                Why not try it now?`);
             }else {
-                response.say(`You have checked-in this beer 
+                response.say(`You and ${dataResponse.response.beers.items[0].checkin_count} people have checked-in this beer.  You have
+                    checked in on this beer
                     ${dataResponse.response.beers.items[0].your_count} times.`)
             }
             response.send();

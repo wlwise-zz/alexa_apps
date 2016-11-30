@@ -13,7 +13,21 @@ let config = require('../config/config'),
 
 
 
-
+function getMyWishList(){
+     console.log('in get my wish list in api');
+            let  myUrl = `${baseURL}user/wishlist/gregavola?client_id=${clientId}&client_secret=${clientSecret}`;
+            let    options = {
+                     method: 'GET',
+                    uri: myUrl,
+                    transform: function (body, response) {
+                        body = JSON.parse(body);
+                        console.log(body);
+                        return body;
+                    }
+                };
+                
+        return request(options);
+ }
  
  function getMyUserStats(){
      console.log('in get my user stats in api');
@@ -64,6 +78,7 @@ let config = require('../config/config'),
 // }
 
 api = {
+    getMyWishList : getMyWishList,
     getMyUserStats : getMyUserStats,
     searchBeerNames : searchBeerNames
 }
