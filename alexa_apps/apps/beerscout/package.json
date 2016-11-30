@@ -6,7 +6,7 @@
   "author": "Wendy L Wise",
   "license": "ISC",
   "alexa": {
-    "applicationId":"amzn1.echo-sdk-ams.app.999999-d0ed-9999-ad00-999999d00ebe"
+    "applicationId":amzn1.ask.skill.b9a2661b-1d57-475b-a732-bb7d3b55fb62"
   },
   "dependencies": {
     "alexa-app": "^2.1.0"

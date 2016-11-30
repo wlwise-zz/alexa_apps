@@ -9,10 +9,10 @@ module.change_code = 1;
 // Define an alexa-app
 var app = new alexa.app('beerscout');
 app.launch(function(req,res) {
-	res.say("Welcome to Beer Scout.  You can say - my check-ins, my wish list, search beer, or search brewery");
-
+	res.say("Welcome to Beer Scout.  You can say - my check-ins, my wish list, highest ranked beers, lowest ranked beers, search beer, or search breweries.  What would you like to do?");
+    
     res.session('inSession', 'true');
-    res.shouldEndSession('false');
+    res.shouldEndSession('false', "I'm sorry I didn't get that.  You can say - my wish list, search beer, search breweries, or highest ranked beers.  What would you like to do?");
 });
 
 app.intent('getTheHighestRatedBeer', 
@@ -22,6 +22,8 @@ function (request, response){
     beerscoutAPI.getTheHighestRatedBeers().then(function(dataResponse){
         console.log(dataResponse.response.beers.items[0]);
         console.log('number of ratings ' + dataResponse.response.beers.items[0].rating_count);
+        console.log(dataResponse.response.beers.items[0].beer.beer_label);
+        makeCard(dataResponse.response.beers.items[0].beer.beer_label, "The highest rated beer", dataResponse.response.beers.items[0].beer.beer_name, response);
         response.say(`The highest rated beer is
             ${dataResponse.response.beers.items[0].beer.beer_name}, which is brewed by 
             ${dataResponse.response.beers.items[0].brewery.brewery_name}.  This beer is rated at
@@ -38,6 +40,8 @@ function (request, response){
     response.shouldEndSession('false');
     beerscoutAPI.getTheLowestRatedBeers().then(function(dataResponse){
         console.log(dataResponse.response.beers.items[0]);
+        makeCard(dataResponse.response.beers.items[0].beer.beer_label, "The lowest rated beer", dataResponse.response.beers.items[0].beer.beer_name, response);
+        
         response.say(`The lowest rated beer is
             ${dataResponse.response.beers.items[0].beer.beer_name}, which is brewed by 
             ${dataResponse.response.beers.items[0].brewery.brewery_name}.  This beer is rated at
@@ -55,6 +59,8 @@ function (request, response){
     beerscoutAPI.getMyHighestRatedBeers().then(function(dataResponse){
         console.log(dataResponse.response.beers.items[0]);
         console.log('number of ratings ' + dataResponse.response.beers.items[0].rating_count);
+        makeCard(dataResponse.response.beers.items[0].beer.beer_label, "My highest rated beer", dataResponse.response.beers.items[0].beer.beer_name, response);
+        
         response.say(`Your highest rated beer is
             ${dataResponse.response.beers.items[0].beer.beer_name}, which is brewed by 
             ${dataResponse.response.beers.items[0].brewery.brewery_name}.  This beer is rated at
@@ -71,6 +77,8 @@ function (request, response){
     response.shouldEndSession('false');
     beerscoutAPI.getMyLowestRatedBeers().then(function(dataResponse){
         console.log(dataResponse.response.beers.items[0]);
+        makeCard(dataResponse.response.beers.items[0].beer.beer_label, "My lowest rated beer", dataResponse.response.beers.items[0].beer.beer_name, response);
+        
         response.say(`Your lowest rated beer is
             ${dataResponse.response.beers.items[0].beer.beer_name}, which is brewed by 
             ${dataResponse.response.beers.items[0].brewery.brewery_name}.  This beer is rated at
@@ -100,6 +108,8 @@ function (request, response){
                 response.session('wishListCountReturned', 'myArray.length');
                 myArray.length = 5;
             }
+            makeCard(dataResponse.response.beers.items[0].beer.beer_label, "Top of my wish list", dataResponse.response.beers.items[0].beer.beer_name, response);
+        
             for (var i = 0; i < myArray.length; i++){
                     response.say(`${dataResponse.response.beers.items[i].beer.beer_name}...`);
                 }
@@ -117,6 +127,8 @@ function (request, response){
     response.shouldEndSession('false');
     beerscoutAPI.getMyUserStats().then(function(dataResponse){
         console.log('retrieved user data in index.js');
+       makeCard(dataResponse.response.user.user_avatar, "My user stats", dataResponse.response.user.stats.total_beers, response);
+        
         response.say(`Hey ${dataResponse.response.user.first_name}. You have checked in 
         ${dataResponse.response.user.stats.total_checkins} times, tried 
         ${dataResponse.response.user.stats.total_beers} beers, and have
@@ -145,7 +157,7 @@ app.intent('searchBeerByName', {
     slots:{"NAME" : "NAME"}
 }, function(request,response) {
     console.log(`in search beer by name in index.js with parameter ${request.slot('NAME')}`);
-    response.shouldEndSession('false');
+    response.shouldEndSession('false', "I'm sorry I didn't get that.  I may have had too many beers.  Can you repeat it?");
     beerscoutAPI.searchBeerNames(request.slot('NAME')).then(function (dataResponse) {
         console.log(dataResponse.response.beers.count);
          console.log(dataResponse.response.beers.items[0]);
@@ -172,7 +184,7 @@ app.intent('searchBeerByName', {
                     ${dataResponse.response.beers.items[0].checkin_count} checkins for this beer.`);
             }  
               
-              
+              makeCard(dataResponse.response.beers.items[0].beer.beer_label, "Beer Search", dataResponse.response.beers.items[0].beer.beer_name, response);
             var have_had = dataResponse.response.beers.items[0].have_had;
             console.log(have_had);
             if (have_had.toString() === "false") {
@@ -216,7 +228,7 @@ app.intent('searchBreweryByName', {
     slots:{"BREWERYNAME" : "BREWERYNAME"}
 }, function(request,response) {
     console.log(`in search brewery by name in index.js with parameter ${request.slot('BREWERYNAME')}`);
-    response.shouldEndSession('false');
+    response.shouldEndSession('false', "I'm sorry I didn't get that.  I may have had too many beers.  Can you repeat it?");
     beerscoutAPI.searchBreweryByName(request.slot('BREWERYNAME')).then(function (dataResponse) {
         console.log(dataResponse.response.brewery.count);
          console.log(dataResponse.response.brewery.items[0]);
@@ -238,7 +250,7 @@ app.intent('searchBreweryByName', {
             if (dataResponse.response.brewery.items[0].brewery.location.brewery_state.length > 1){
                 response.say(`In ${dataResponse.response.brewery.items[0].brewery.location.brewery_state}.`);
             }
-            
+            makeCard(dataResponse.response.brewery.items[0].brewery.brewery_label, "Brewery Search", dataResponse.response.brewery.items[0].brewery.brewery_name, response);
             response.send();
         }else { //more than one brewery returned
 
@@ -266,6 +278,23 @@ app.intent('searchBreweryByName', {
     });
     return false;
 });
+
+
+//***************Card Functionality
+function makeCard(thumbnail, title, name, response) {
+        
+    
+        // what shows up on the home card
+        response.card({
+            "type": "Standard",
+            "title": title,
+            "text": name,
+            "image": {
+                "smallImageUrl": thumbnail,
+                "largeImageUrl": thumbnail
+            }
+        });
+    }
 
 
 
