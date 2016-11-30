@@ -15,6 +15,35 @@ app.launch(function(req,res) {
     res.shouldEndSession('false');
 });
 
+app.intent('getMyUserStats', 
+function (request, response){
+    console.log('in my stats in index.js');
+    response.shouldEndSession('false');
+    beerscoutAPI.getMyUserStats().then(function(dataResponse){
+        console.log('retrieved user data in index.js');
+        response.say(`Hey ${dataResponse.response.user.first_name}. You have checked in 
+        ${dataResponse.response.user.stats.total_checkins} times, tried 
+        ${dataResponse.response.user.stats.total_beers} beers, and have
+        ${dataResponse.response.user.stats.total_friends} friends. `);
+        
+        console.log(dataResponse.response.user.recent_brews.items[0].beer.beer_name);
+        
+        if (dataResponse.response.user.recent_brews.count === 0){
+            response.say(`You haven't had any brews lately.  Hop to it.`);
+        } else if (dataResponse.response.user.recent_brews.count === 1){
+            response.say(`You have only had 1 brew lately. It was
+             ${dataResponse.response.user.recent_brews.items[0].beer.beer_name}.  Are you feeling okay?`);
+        } else {
+            response.say(`You have  had ${dataResponse.response.user.recent_brews.count} brews lately. The most recent one was
+             ${dataResponse.response.user.recent_brews.items[0].beer.beer_name}.`);
+        }
+         response.send();
+    })
+    
+   
+    return false;
+});
+
 app.intent('searchBeerByName', {
     slots:{"NAME" : "NAME"}
 }, function(request,response) {

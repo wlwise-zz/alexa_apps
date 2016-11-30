@@ -12,25 +12,23 @@ let config = require('../config/config'),
     clientSecret = config.get('untappdAPI').clientSecret.cs;
 
 
-function getBeerTypes() {
-    console.log('in get beer types');
- 
-}
 
-function getBeerByName(beerName){
-    console.log('in get  beer by name in the API with beer named ' + beerName);
-//     let  myNewUrl = `${baseURL}search/beer?q=${beerName}&client_id=${clientId}&client_secret=${clientSecret}`;
-//          console.log(myNewUrl)
-//           let  myUrl = `${baseURL}search/beer?q=${beerName}&client_id=${clientId}&client_secret=${clientSecret}`,
-//                 options = {
-//                      method: 'GET',
-//                     uri: myUrl,
-//                     transform: function (body, response) {
-//                         body = JSON.parse (body);
-//                         return body;
-//                     }
-//                 };
-//         return request(options);
+
+ 
+ function getMyUserStats(){
+     console.log('in get my user stats in api');
+            let  myUrl = `${baseURL}user/info/gregavola?client_id=${clientId}&client_secret=${clientSecret}`;
+            let    options = {
+                     method: 'GET',
+                    uri: myUrl,
+                    transform: function (body, response) {
+                        body = JSON.parse(body);
+                        console.log(body);
+                        return body;
+                    }
+                };
+                
+        return request(options);
  }
 
     function searchBeerNames(beerName){
@@ -66,9 +64,7 @@ function getBeerByName(beerName){
 // }
 
 api = {
-    getBeerTypes: getBeerTypes,
-    getBeerType: getBeerType,
-    getBeerByName: getBeerByName,
+    getMyUserStats : getMyUserStats,
     searchBeerNames : searchBeerNames
 }
 
