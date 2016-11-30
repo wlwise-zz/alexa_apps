@@ -9,77 +9,51 @@ module.change_code = 1;
 // Define an alexa-app
 var app = new alexa.app('beerscout');
 app.launch(function(req,res) {
-	res.say("Welcome to Beer Scout.  You can say - today's beer, search beer, or search brewery");
+	res.say("Welcome to Beer Scout.  You can say - my check-ins, my wish list, search beer, or search brewery");
 
     res.session('inSession', 'true');
     res.shouldEndSession('false');
 });
 
-app.intent('ListBeerTypeIntent', function(req,response) {
-            console.log('here in intent');
-            response.shouldEndSession('false');
-            beerscoutAPI.getBeerTypes().then(function (beerStyle) {
-
-                response.say(`here are 5 beer types, 
-                ${beerStyle.data[0].name},
-                ${beerStyle.data[1].name},
-                ${beerStyle.data[2].name},
-                ${beerStyle.data[3].name},
-                ${beerStyle.data[4].name},
-                Would you like to hear the description of one of these?`);
-                response.session('nextBeerType', 4);
-                response.send();
-            }).catch(function (reason) {
-                console.log('whoops ' + reason);
-            });
-            return false;
-    });
-
-app.intent('listBeerStyleDescription', {
-    slots:{"style" : "style"}
-}, function(request,response) {
-    console.log(`in get style description ${request.slot('style')}`);
-    response.shouldEndSession('false');
-    beerscoutAPI.getBeerType(request.slot('style')).then(function (beerStyle) {
-        response.say(`here is more information about
-                ${beerStyle.name}   -
-                ${beerStyle.description}.
-                The alcohol by volume for this beer style
-                is minimum ${beerStyle.abvMin}  and maximum ${beerStyle.abvMax}
-                Would you like to hear the names of some beer in this style?`);
-        response.send();
-    }).catch(function (reason) {
-        console.log('whoops ' + reason);
-    });
-    return false;
-});
-
 app.intent('searchBeerByName', {
     slots:{"name" : "name"}
 }, function(request,response) {
-    console.log(`in get style description ${request.slot('name')}`);
+    console.log(`in search beer by name in index.js with parameter ${request.slot('name')}`);
     response.shouldEndSession('false');
-    beerscoutAPI.getBeerByName(request.slot('name')).then(function (beerStyle) {
-        if (beerStyle.data[0].name){
-            response.say(`here is more information about
-                ${beerStyle.data[0].name}   -
-                ${beerStyle.data[0].description}.
-                The alcohol by volume for this beer 
-                is ${beerStyle.data[0].abv} `);
+    beerscoutAPI.searchBeerNames(request.slot('name')).then(function (dataResponse) {
+        console.log(dataResponse.response.beers.count);
+         console.log(dataResponse.response.beers.items[0]);
+        var beerCount = dataResponse.response.beers.count + 1;
+        if (beerCount === 1){
+            response.say(`Sorry, I couldn't find any beer named ${request.slot('name')}.`);
+            response.send();
+        }else if (beerCount === 2){
+            response.say(`I found this about ${dataResponse.response.beers.items[0].beer.beer_name}.  It is a 
+            ${dataResponse.response.beers.items[0].beer.beer_style} style beer.  It's alcohol by volume is
+            ${dataResponse.response.beers.items[0].beer.beer_abv}.  It is made by
+            ${dataResponse.response.beers.items[0].brewery.brewery_name}.  There have been 
+            ${dataResponse.response.beers.items[0].checkin_count} checkins for this beer.`);
+            var have_had = dataResponse.response.beers.items[0].have_had;
+            console.log(have_had);
+            if (have_had.toString() === "false") {
+                response.say('You have not had this beer yet.  Why not try it now?');
+            }else {
+                response.say(`You have checked-in this beer 
+                ${dataResponse.response.beers.items[0].your_count} times.`)
+            }
             response.send();
         }else {
-            response.say(`I could not find a beer by the name of ${request.slot('name')}`);
-            response.send();
+            var myArray = dataResponse.response.beers.items;
+             for (var item of myArray) {
+                console.log(item.beer.beer_name);
+            }
         }
-
+        
     }).catch(function (reason) {
-        beerscoutAPI.searchBeerNames(request.slot('name')).then(function (searchResults){
-           response.say(`I couldn't find ${request.slot('name')}, did you mean ${searchResults.data[0].name} ?`);
-            response.send();
-        });
+        console.log('whoops from index.js ' + reason);
         response.say(`I could not find a beer by the name of ${request.slot('name')}`);
         response.send();
-        console.log('whoops ' + reason);
+        
     });
     return false;
 });

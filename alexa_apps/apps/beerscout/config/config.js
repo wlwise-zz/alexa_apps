@@ -22,7 +22,13 @@ config = {
         },
         untappdAPI: {
             v4: {
-                'url' :'http://untappd.com/api/v4'
+                'url' :'https://api.untappd.com/v4/'
+            },
+            clientId: {
+                'cid': 'C3B03418C87E85940E025B3B497A5E77365C2FED'
+            },
+            clientSecret: {
+                'cs' : '071BB606D27FFA3E4669A4F94631586A14FE79F4'
             }
         }
     },
