@@ -11,6 +11,37 @@ let config = require('../config/config'),
     clientId = config.get('untappdAPI').clientId.cid,
     clientSecret = config.get('untappdAPI').clientSecret.cs;
 
+function getMyHighestRatedBeers(){
+     console.log('in get my highest rated beers in api');
+            let  myUrl = `${baseURL}user/beers/gregavola?sort=highest_rated_you&client_id=${clientId}&client_secret=${clientSecret}`;
+            let    options = {
+                     method: 'GET',
+                    uri: myUrl,
+                    transform: function (body, response) {
+                        body = JSON.parse(body);
+                        console.log(body);
+                        return body;
+                    }
+                };
+                
+        return request(options);
+ }
+ 
+ function getMyLowestRatedBeers(){
+     console.log('in get my highest rated beers in api');
+            let  myUrl = `${baseURL}user/beers/gregavola?sort=lowest_rated_you&client_id=${clientId}&client_secret=${clientSecret}`;
+            let    options = {
+                     method: 'GET',
+                    uri: myUrl,
+                    transform: function (body, response) {
+                        body = JSON.parse(body);
+                        console.log(body);
+                        return body;
+                    }
+                };
+                
+        return request(options);
+ }
 
 
 function getMyWishList(){
@@ -80,7 +111,9 @@ function getMyWishList(){
 api = {
     getMyWishList : getMyWishList,
     getMyUserStats : getMyUserStats,
-    searchBeerNames : searchBeerNames
+    searchBeerNames : searchBeerNames,
+    getMyHighestRatedBeers : getMyHighestRatedBeers,
+    getMyLowestRatedBeers : getMyLowestRatedBeers
 }
 
 module.exports = api;

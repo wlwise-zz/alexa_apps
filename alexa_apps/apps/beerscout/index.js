@@ -15,6 +15,39 @@ app.launch(function(req,res) {
     res.shouldEndSession('false');
 });
 
+app.intent('getMyHighestRatedBeer', 
+function (request, response){
+    console.log('in my highest rated beer in index.js');
+    response.shouldEndSession('false');
+    beerscoutAPI.getMyHighestRatedBeers().then(function(dataResponse){
+        console.log(dataResponse.response.beers.items[0]);
+        console.log('number of ratings ' + dataResponse.response.beers.items[0].rating_count);
+        response.say(`Your highest rated beer is
+            ${dataResponse.response.beers.items[0].beer.beer_name}, which is brewed by 
+            ${dataResponse.response.beers.items[0].brewery.brewery_name}.  This beer is rated at
+            ${dataResponse.response.beers.items[0].beer.rating_score} out of 5.  
+            ${dataResponse.response.beers.items[0].beer.rating_count} people have rated this beer.`);
+            response.send();
+    })
+    return false;
+});
+
+app.intent('getMyLowestRatedBeer', 
+function (request, response){
+    console.log('in my lowest rated beer in index.js');
+    response.shouldEndSession('false');
+    beerscoutAPI.getMyLowestRatedBeers().then(function(dataResponse){
+        console.log(dataResponse.response.beers.items[0]);
+        response.say(`Your lowest rated beer is
+            ${dataResponse.response.beers.items[0].beer.beer_name}, which is brewed by 
+            ${dataResponse.response.beers.items[0].brewery.brewery_name}.  This beer is rated at
+            ${dataResponse.response.beers.items[0].beer.rating_score} out of 5.  
+            ${dataResponse.response.beers.items[0].beer.rating_count} people have rated this beer.`);
+            response.send();
+    })
+    return false;
+});
+
 app.intent('getMyWishList', 
 function (request, response){
     console.log('in my stats in index.js');
