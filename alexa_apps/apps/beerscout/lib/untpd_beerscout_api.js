@@ -94,6 +94,7 @@ function getMyWishList(){
  function getMyUserStats(){
      console.log('in get my user stats in api');
             let  myUrl = `${baseURL}user/info/gregavola?client_id=${clientId}&client_secret=${clientSecret}`;
+            //let  myUrl = `${baseURL}user/info/?access_token=73F269F6A22524CE3A635B1B316DE0566DD3C6BA`;
             let    options = {
                      method: 'GET',
                     uri: myUrl,

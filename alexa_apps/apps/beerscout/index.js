@@ -9,10 +9,21 @@ module.change_code = 1;
 // Define an alexa-app
 var app = new alexa.app('beerscout');
 app.launch(function(req,res) {
-	res.say("Welcome to Beer Scout.  You can say - my check-ins, my wish list, highest ranked beers, lowest ranked beers, search beer, or search breweries.  What would you like to do?");
-    
-    res.session('inSession', 'true');
-    res.shouldEndSession('false', "I'm sorry I didn't get that.  You can say - my wish list, search beer, search breweries, or highest ranked beers.  What would you like to do?");
+	
+	//TODO:  update once OAUTH is fixed.
+    // var accessToken = "73F269F6A22524CE3A635B1B316DE0566DD3C6BA";
+    // if (accessToken === null) {
+    //     res.linkAccount().shouldEndSession(true).say("Your UnTappd account is not linked. Please use the Alexa App to link the account.");
+    //     return true;
+    // } else {
+    //     res.say("Welcome to Beer Scout.  You can say - my check-ins, my wish list, highest ranked beers, lowest ranked beers, search beer, or search breweries.  What would you like to do?");
+    //     res.session('inSession', 'true');
+    //     res.shouldEndSession('false');
+    // }
+
+        res.say("Welcome to Beer Scout.  You can say - my check-ins, my wish list, highest ranked beers, lowest ranked beers, search beer, or search breweries.  What would you like to do?");
+        res.session('inSession', 'true');
+        res.shouldEndSession('false');
 });
 
 app.intent('getTheHighestRatedBeer', 
@@ -125,15 +136,39 @@ app.intent('getMyUserStats',
 function (request, response){
     console.log('in my stats in index.js');
     response.shouldEndSession('false');
+    var totalBeers = 0;
+    var avatar = "http://bit.ly/2fTin8R";
     beerscoutAPI.getMyUserStats().then(function(dataResponse){
         console.log('retrieved user data in index.js');
-       makeCard(dataResponse.response.user.user_avatar, "My user stats", dataResponse.response.user.stats.total_beers, response);
+       
         
-        response.say(`Hey ${dataResponse.response.user.first_name}. You have checked in 
-        ${dataResponse.response.user.stats.total_checkins} times, tried 
-        ${dataResponse.response.user.stats.total_beers} beers, and have
-        ${dataResponse.response.user.stats.total_friends} friends, and
-        ${dataResponse.response.user.stats.total_followings} followings.`);
+        response.say(`Hey ${dataResponse.response.user.first_name}.`);
+        
+        if (dataResponse.response.user.stats.total_checkins){
+            response.say(`You have checked in ${dataResponse.response.user.stats.total_checkins} times, and `);
+        }else {
+            response.say("You haven't checked in anywhere.  Don't you get out?");
+        }
+        
+        if (dataResponse.response.user.stats.total_beers){
+            response.say(`you've tried a total of ${dataResponse.response.user.stats.total_beers} beers.`);
+            totalBeers = dataResponse.response.user.stats.total_beers;
+        } else {
+            
+            response.say("You haven't tried any beers yet.  Get on that!");
+        }
+        
+        if (dataResponse.response.user.stats.total_friends){
+           response.say(`You have ${dataResponse.response.user.stats.total_friends} friends and`);  
+        }else {
+            response.say("It must be lonely being you - you don't have any friends");
+        }
+        
+        if (dataResponse.response.user.stats.total_followings){
+            response.say(`you have ${dataResponse.response.user.stats.total_followings} followings.`);
+        }else {
+            response.say ("wow.  You don't have any followings.  I'm so sorry.");
+        }
         
         console.log(dataResponse.response.user.recent_brews.items[0].beer.beer_name);
         
@@ -144,8 +179,12 @@ function (request, response){
              ${dataResponse.response.user.recent_brews.items[0].beer.beer_name}.  Are you feeling okay?`);
         } else {
             response.say(`You have  had ${dataResponse.response.user.recent_brews.count} brews lately. The most recent one was
-             ${dataResponse.response.user.recent_brews.items[0].beer.beer_name}.`);
+             ${dataResponse.response.user.recent_brews.items[0].beer.beer_name}. Good work`);
         }
+        if (dataResponse.response.user.user_avatar){
+            avatar = dataResponse.response.user.user_avatar;
+        }
+        makeCard(dataResponse.response.user.user_avatar, "My user stats", totalBeers, response);
          response.send();
     })
     
@@ -282,8 +321,8 @@ app.intent('searchBreweryByName', {
 
 //***************Card Functionality
 function makeCard(thumbnail, title, name, response) {
-        
-    
+        console.log(thumbnail + " " + title + " " + name);
+    try{
         // what shows up on the home card
         response.card({
             "type": "Standard",
@@ -294,6 +333,9 @@ function makeCard(thumbnail, title, name, response) {
                 "largeImageUrl": thumbnail
             }
         });
+    } catch (err) {
+        console.log(err);
+    }
     }
 
 
