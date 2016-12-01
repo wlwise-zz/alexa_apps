@@ -10,8 +10,10 @@ let config = require('../config/config'),
     baseURL = config.get('untappdAPI').v4.url,
     clientId = config.get('untappdAPI').clientId.cid,
     clientSecret = config.get('untappdAPI').clientSecret.cs;
-function getTheHighestRatedBeers(){
+    
+function getTheHighestRatedBeers(){ //take in accessToken when OAUT works
      console.log('in get the highest rated beers in api');
+           // let myUrl = `${baseURL}user/beers/gregavola?sort=highest_rated&access_token=${accessToken}`;
             let  myUrl = `${baseURL}user/beers/gregavola?sort=highest_rated&client_id=${clientId}&client_secret=${clientSecret}`;
             let    options = {
                      method: 'GET',
@@ -25,6 +27,7 @@ function getTheHighestRatedBeers(){
                 
         return request(options);
  }
+ 
  
  function getTheLowestRatedBeers(){
      console.log('in get the highest rated beers in api');

@@ -11,26 +11,36 @@ var app = new alexa.app('beerscout');
 app.launch(function(req,res) {
 	
 	//TODO:  update once OAUTH is fixed.
-    // var accessToken = "73F269F6A22524CE3A635B1B316DE0566DD3C6BA";
-    // if (accessToken === null) {
-    //     res.linkAccount().shouldEndSession(true).say("Your UnTappd account is not linked. Please use the Alexa App to link the account.");
-    //     return true;
-    // } else {
-    //     res.say("Welcome to Beer Scout.  You can say - my check-ins, my wish list, highest ranked beers, lowest ranked beers, search beer, or search breweries.  What would you like to do?");
-    //     res.session('inSession', 'true');
-    //     res.shouldEndSession('false');
-    // }
+    //var accessToken = "73F269F6A22524CE3A635B1B316DE0566DD3C6BA";
+//     var accessToken = req.sessionDetails.accessToken;
+//     if (accessToken === null) {
+//         res.linkAccount().shouldEndSession(true).say("Your UnTappd account is not linked. Please use the Alexa App to link the account.");
+//         return true;
+//     } else {
+//         res.say("Welcome to Beer Scout.  You can say - my check-ins, my wish list, highest ranked beers, lowest ranked beers, search beer, or search breweries.  What would you like to do?");
+//         res.session('inSession', 'true');
+//         res.shouldEndSession('false');
+//     }
 
         res.say("Welcome to Beer Scout.  You can say - my check-ins, my wish list, highest ranked beers, lowest ranked beers, search beer, or search breweries.  What would you like to do?");
         res.session('inSession', 'true');
         res.shouldEndSession('false');
 });
 
+app.intent('help', function (request, response){
+    console.log('in help intent');
+    response.shouldEndSession('false');
+    response.say("Beer Scout lets you learn about beers and breweries.  You can say things like - highest rated beer, search beer, search brewery, or lowest rated beer. You can say - tell me about brewery Goose Island Beer' for instance.  What would you like to do?");
+    response.send();
+});
+
 app.intent('getTheHighestRatedBeer', 
 function (request, response){
     console.log('in the highest rated beer in index.js');
     response.shouldEndSession('false');
-    beerscoutAPI.getTheHighestRatedBeers().then(function(dataResponse){
+    //when OAUTH works
+    //beerscoutAPI.getTheHighestRatedBeers(request.sessionDetails.account).then(function(dataResponse){
+    beerscoutAPI.getTheHighestRatedBeers().then(function(dataResponse){    
         console.log(dataResponse.response.beers.items[0]);
         console.log('number of ratings ' + dataResponse.response.beers.items[0].rating_count);
         console.log(dataResponse.response.beers.items[0].beer.beer_label);
@@ -196,7 +206,13 @@ app.intent('searchBeerByName', {
     slots:{"NAME" : "NAME"}
 }, function(request,response) {
     console.log(`in search beer by name in index.js with parameter ${request.slot('NAME')}`);
-    response.shouldEndSession('false', "I'm sorry I didn't get that.  I may have had too many beers.  Can you repeat it?");
+    response.shouldEndSession('false');
+    if (request.slot('NAME')){
+        
+    }else {
+        response.say("Okay - search for beer.  What beer would you like to search on?");
+        response.send();
+    }
     beerscoutAPI.searchBeerNames(request.slot('NAME')).then(function (dataResponse) {
         console.log(dataResponse.response.beers.count);
          console.log(dataResponse.response.beers.items[0]);
@@ -267,6 +283,12 @@ app.intent('searchBreweryByName', {
     slots:{"BREWERYNAME" : "BREWERYNAME"}
 }, function(request,response) {
     console.log(`in search brewery by name in index.js with parameter ${request.slot('BREWERYNAME')}`);
+    if (request.slot("BREWERYNAME")){
+        //change this later.
+    }else {
+        response.say("Okay - search for brewery.  What brewery would you like to search for?");
+        response.send();
+    }
     response.shouldEndSession('false', "I'm sorry I didn't get that.  I may have had too many beers.  Can you repeat it?");
     beerscoutAPI.searchBreweryByName(request.slot('BREWERYNAME')).then(function (dataResponse) {
         console.log(dataResponse.response.brewery.count);
