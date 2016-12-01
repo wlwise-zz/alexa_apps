@@ -30,7 +30,14 @@ app.launch(function(req,res) {
 app.intent('help', function (request, response){
     console.log('in help intent');
     response.shouldEndSession('false');
-    response.say("Beer Scout lets you learn about beers and breweries.  You can say things like - highest rated beer, search beer, search brewery, or lowest rated beer. You can say - tell me about brewery Goose Island Beer' for instance.  What would you like to do?");
+    response.say("Beer Scout lets you learn about beers and breweries.  You can say things like - highest rated beer, search beer, search brewery, or lowest rated beer. You can say - tell me about brewery Goose Island Beer for instance.  What would you like to do?");
+    response.send();
+});
+
+app.intent('exit', function (request, response){
+    console.log('in exit intent');
+    response.shouldEndSession('true');
+    response.say("Thanks for using Beer Scout.  Happy Drinking!");
     response.send();
 });
 
