@@ -30,7 +30,7 @@ app.launch(function(req,res) {
 app.intent('help', function (request, response){
     console.log('in help intent');
     response.shouldEndSession('false');
-    response.say("Beer Scout lets you learn about beers and breweries.  You can say things like - highest rated beer, search beer, search brewery, or lowest rated beer. You can say - tell me about brewery Goose Island Beer for instance.  What would you like to do?");
+    response.say("Beer Scout lets you learn about beers and breweries.  You can say things like - highest rated beer, search beer, search brewery, or lowest rated beer. You can say - tell me about brewery Goose Island Beer.  What would you like to do?");
     response.send();
 });
 
@@ -209,82 +209,110 @@ function (request, response){
     return false;
 });
 
+app.intent('details',  {
+    slots:{"ORDINALSELECT" : "ORDINALSELECT"}
+}, function (request, response){
+    
+     if ((request.slot('ORDINALSELECT') === "first one") || (request.slot('ORDINALSELECT') === "one")|| (request.slot('ORDINALSELECT') === "first")) {
+        console.log("user said first one");
+        details(request, response, 0);
+    } else if ((request.slot('ORDINALSELECT') === "second one") || (request.slot('ORDINALSELECT') === "two")|| (request.slot('ORDINALSELECT') === "second")) {
+        console.log("user said second one");
+        details(request, response, 1);
+    } else if ((request.slot('ORDINALSELECT') === "third one")  || (request.slot('ORDINALSELECT') === "three")|| (request.slot('ORDINALSELECT') === "third")) {
+        console.log("user said third one");
+        details(request, response, 2);
+    }else if ((request.slot('ORDINALSELECT') === "fourth one") || (request.slot('ORDINALSELECT') === "four") || (request.slot('ORDINALSELECT') === "fourth")) {
+        console.log("user said fourth one");
+       details(request, response, 3);
+    }else if ((request.slot('ORDINALSELECT') === "fifth one") || (request.slot('ORDINALSELECT') === "five")|| (request.slot('ORDINALSELECT') === "fifth")) {
+       console.log("user said fifth one");
+       details(request, response, 4);
+    }
+    return false;
+
+});
+
+function details(request, response, index){
+    console.log("in details with index " + index);
+    var myBeerArray = request.session('beersReturned');
+    var beerId = myBeerArray[index];
+    console.log(beerId);
+    var beerObject;
+    beerscoutAPI.getBeerInfo(beerId).then(function(dataResponse){
+       beerObject = dataResponse.response.beer;
+       console.log("beer name is " + beerObject.rating_score);
+       response.say(`I found this about ${beerObject.beer_name}.  It is a 
+                ${beerObject.beer_style} style beer.`);
+                            if ((beerObject.rating_score > 1) && (beerObject.rating_count >1)){
+                response.say(`It is rated at ${beerObject.rating_score} by over ${beerObject.rating_count} people.`);
+            }
+            if (beerObject.brewery.brewery_name.length > 3 ){
+                response.say(`It is made by ${beerObject.brewery.brewery_name}.`);
+            }
+            if (beerObject.beer_abv.length > 1) {
+                response.say(`It's alcohol by volume is
+                    ${beerObject.beer_abv}.`);
+            }
+            if (beerObject.beer_description.length > 5) {
+                response.say(`Here is the description - 
+                    ${beerObject.beer_description}.`);
+            }
+
+            makeCard(beerObject.beer_label, "Beer Search", beerObject.beer_name, response);
+            response.send();
+    });
+}
+
 app.intent('searchBeerByName', {
     slots:{"NAME" : "NAME"}
 }, function(request,response) {
-    console.log(`in search beer by name in index.js with parameter ${request.slot('NAME')}`);
-    response.shouldEndSession('false');
+    var beerObject;
+    var myBeerArray;
+    var beerCount = 0;
+    response.shouldEndSession('false', "I'm sorry I didn't get that.  I may have had too many beers.  Can you try again?");
+        
+ 
+    
     if (request.slot('NAME')){
         
     }else {
         response.say("Okay - search for beer.  What beer would you like to search on?");
         response.send();
     }
-    beerscoutAPI.searchBeerNames(request.slot('NAME')).then(function (dataResponse) {
-        console.log(dataResponse.response.beers.count);
-         console.log(dataResponse.response.beers.items[0]);
-        var beerCount = dataResponse.response.beers.count + 1;
-        if (beerCount === 1){
-            response.say(`Sorry, I couldn't find any beer named ${request.slot('NAME')}.`);
-            response.send();
-        }else if (beerCount === 2){
-            response.say(`I found this about ${dataResponse.response.beers.items[0].beer.beer_name}.  It is a 
-                ${dataResponse.response.beers.items[0].beer.beer_style} style beer.`);
-            if (dataResponse.response.beers.items[0].beer.beer_description.length > 5) {
-                response.say(`It is described as
-                    ${dataResponse.response.beers.items[0].beer.beer_description}.`);
-            }
-            if (dataResponse.response.beers.items[0].beer.beer_abv.length > 1) {
-                response.say(`It's alcohol by volume is
-                    ${dataResponse.response.beers.items[0].beer.beer_abv}.`);
-            }
-            if (dataResponse.response.beers.items[0].brewery.brewery_name.length > 3 ){
-                response.say(`It is made by ${dataResponse.response.beers.items[0].brewery.brewery_name}.`);
-            }
-            if (dataResponse.response.beers.items[0].checkin_count.length > 0){
-                response.say(`There have been 
-                    ${dataResponse.response.beers.items[0].checkin_count} checkins for this beer.`);
-            }  
-              
-              makeCard(dataResponse.response.beers.items[0].beer.beer_label, "Beer Search", dataResponse.response.beers.items[0].beer.beer_name, response);
-            var have_had = dataResponse.response.beers.items[0].have_had;
-            console.log(have_had);
-            if (have_had.toString() === "false") {
-                response.say(`You have not had this beer yet, but 
-                 ${dataResponse.response.beers.items[0].checkin_count} people have.
-                Why not try it now?`);
-            }else {
-                response.say(`You and ${dataResponse.response.beers.items[0].checkin_count} people have checked-in this beer.  You have
-                    checked in on this beer
-                    ${dataResponse.response.beers.items[0].your_count} times.`)
-            }
-            response.send();
-        }else { //more than one beer returned
 
-            var myArray = dataResponse.response.beers.items;
-            console.log('more than one beer returned - ' + myArray.length);
-            response.say(`I found several beers related to ${request.slot('NAME')}.  Did you mean one of these?`);
-            if (myArray.length > 5) {
-                response.session('beerCountReturned', 'myArray.length');
+        beerscoutAPI.searchBeerNames(request.slot('NAME')).then(function (dataResponse) {
+         beerObject = dataResponse.response.beers.items[0]; 
+         beerCount = dataResponse.response.beers.count;
+         var myArray = dataResponse.response.beers.items;
+         var myStoredArray = new Array(5);
+         if (beerCount === 1){
+             details(request, response, 0);
+            return false;
+        }else {
+         console.log('more than one beer returned - ' + myArray.length);
+         response.say(`I found several beers related to ${request.slot('NAME')}.  Did you mean one of these? You can say first one, second one, third one, fourth, or fifth.  Which would you like?`);
+         if (myArray.length > 5) {
                 myArray.length = 5;
-            }
-                for (var i = 0; i < myArray.length; i++){
-                    response.say(`${dataResponse.response.beers.items[i].beer.beer_name}...`);
-                }
-            response.send();
+           }
+          for (var i = 0; i < myArray.length; i++){
+            response.say(`${dataResponse.response.beers.items[i].beer.beer_name}...`);
+            myStoredArray[i] = dataResponse.response.beers.items[i].beer.bid;
+         }      
              for (var item of myArray) {
                 console.log(item.beer.beer_name);
             }
+            response.session('beersReturned', myStoredArray);
+             response.send(); 
         }
-        
-    }).catch(function (reason) {
+     }).catch(function (reason) {
         console.log('whoops from index.js ' + reason);
         response.say(`Sorry.  I had some sort of issue.  Maybe it was too much beer.  Please try your request again.`);
         response.send();
-        
     });
     return false;
 });
+
 
 app.intent('searchBreweryByName', {
     slots:{"BREWERYNAME" : "BREWERYNAME"}
@@ -326,7 +354,7 @@ app.intent('searchBreweryByName', {
             console.log('more than one brewery returned - ' + myArray.length);
             response.say(`I found several breweries related to ${request.slot('BREWERYNAME')}.  Did you mean one of these?`);
             if (myArray.length > 5) {
-                response.session('breweryCountReturned', 'myArray.length');
+                response.session('breweryCountReturned', myArray.length);
                 myArray.length = 5;
             }
                 for (var i = 0; i < myArray.length; i++){

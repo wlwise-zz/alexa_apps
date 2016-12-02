@@ -127,6 +127,23 @@ function getMyWishList(){
         return request(options);
     }
     
+    function getBeerInfo(beerId){
+        console.log('in search beer by id in the API with beer id ' + beerId);
+          let  myUrl = `${baseURL}beer/info/${beerId}/?client_id=${clientId}&client_secret=${clientSecret}`;
+            let    options = {
+                     method: 'GET',
+                    uri: myUrl,
+                    transform: function (body, response) {
+                        body = JSON.parse(body);
+                        console.log(body);
+                        console.log(body);
+                        return body;
+                    }
+                };
+                
+        return request(options);
+    }
+    
     function searchBreweryByName(breweryName){
         console.log('in search brewery by name in the API with brewery named ' + breweryName);
           let  myUrl = `${baseURL}search/beer?q=${breweryName}&client_id=${clientId}&client_secret=${clientSecret}`;
@@ -152,7 +169,8 @@ api = {
     getMyLowestRatedBeers : getMyLowestRatedBeers,
     getTheLowestRatedBeers : getTheLowestRatedBeers,
     getTheHighestRatedBeers : getTheHighestRatedBeers,
-    searchBreweryByName : searchBreweryByName
+    searchBreweryByName : searchBreweryByName,
+    getBeerInfo : getBeerInfo
 }
 
 module.exports = api;
